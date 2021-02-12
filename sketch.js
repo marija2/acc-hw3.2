@@ -2,9 +2,6 @@
 // can be changed here manually or by using the slider
 var sideSize = 100;
 
-// the color of the side of the pyramid when the light is directly above it
-var centerColor = 128;
-
 // slider that allows for adjusting the size of the squares
 var sizeSlider;
 // slider that allows for moving the light across the x axis
@@ -19,14 +16,18 @@ var doAmination = true;
 var pyramids = [];
 
 // used to change color during the animation
-var cosCounter = 0;
+var xCosCounter = 0;
+var yCosCounter = 3.14 / 2;
 
 // increments value of cosCounter by 0.00001 until it reaches 2pi
 // resets value of cosCounter to 0 when 2pi is reached
-function incrementCosCounter() {
+function incrementCosCounters() {
 
-  if ( cosCounter >= 2 * PI ) cosCounter = 0;
-  else cosCounter += 0.0001;
+  if ( xCosCounter >= 2 * PI ) xCosCounter = 0;
+  else xCosCounter += 0.0001;
+
+  if ( yCosCounter >= 2 * PI ) yCosCounter = 0;
+  else yCosCounter += 0.0001;
 }
 
 // holds the coordinates of the center of a pyramid
@@ -37,61 +38,63 @@ class Pyramid {
 
     this.xCenter = x;
     this.yCenter = y; 
+
+    this.red = random(200);
+    this.green = random(200);
+    this.blue = random(200);
+
+    // upper-left point
+    this.ulPt = [ x - sideSize / 2, y - sideSize / 2 ];
+
+    // upper-right point
+    this.urPt = [ x + sideSize / 2, y - sideSize / 2 ];
+
+    // lower-right point
+    this.lrPt = [ x + sideSize / 2, y + sideSize / 2 ];
+
+    // lower-left point
+    this.llPt = [ x - sideSize / 2, y + sideSize / 2 ];
   }
 
   render() {
-    // upper-left point
-    var x1 = this.xCenter - sideSize / 2;
-    var y1 = this.yCenter - sideSize / 2;
-
-    // upper-right point
-    var x2 = this.xCenter + sideSize / 2;
-    var y2 = this.yCenter - sideSize / 2;
-
-    // lower-right point
-    var x3 = this.xCenter + sideSize / 2;
-    var y3 = this.yCenter + sideSize / 2;
-
-    // lower-left point
-    var x4 = this.xCenter - sideSize / 2;
-    var y4 = this.yCenter + sideSize / 2;
 
     // for determining the color of each triangle
-    var xDistanceFromCenter = 0;
-    var yDistanceFromCenter = 0;
+    var xShade = 0;
+    var yShade = 0;
 
     // if animation is not active, take value from slider
     if ( !doAmination ) {
-      xDistanceFromCenter = width / 2 - xSlider.value(); // [-width/2,width/2]
-      yDistanceFromCenter = height / 2 - ySlider.value(); // [-height/2,height/2]
+
+      xShade = width / 2 - xSlider.value(); // [-width/2,width/2]
+      // have to transform numbers[-width/2,width/2] to [-100,100]
+      xShade *= 100 / ( width / 2 );
+
+      yShade = height / 2 - ySlider.value(); // [-height/2,height/2]
+       // have to transform numbers[-height/2,height/2] to [-100,100]
+      yShade *= 100 / ( height / 2 );
     }
     // if animation is active use cos to change color
     else {
-      xDistanceFromCenter = cos(cosCounter) * width / 2;
-      incrementCosCounter();
+      xShade = cos(xCosCounter) * 100;
+      yShade = cos(yCosCounter) * 100;
+      incrementCosCounters();
     }
 
-    // have to transform numbers[-width/2,width/2] to [-100,100]
-    xDistanceFromCenter *= 100 / ( width / 2 );
-
-    // have to transform numbers[-height/2,height/2] to [-100,100]
-    yDistanceFromCenter *= 100 / ( height / 2 );
-
     // up triangle
-    fill ( centerColor + yDistanceFromCenter );
-    triangle ( x1, y1, x2, y2, this.xCenter, this.yCenter );
+    fill ( this.red + yShade, this.green + yShade, this.blue + yShade );
+    triangle ( this.ulPt[0], this.ulPt[1], this.urPt[0], this.urPt[1], this.xCenter, this.yCenter );
     
     // left triangle
-    fill ( centerColor + xDistanceFromCenter );
-    triangle ( x1, y1, x4, y4, this.xCenter, this.yCenter );
+    fill ( this.red + xShade, this.green + xShade, this.blue + xShade );
+    triangle ( this.ulPt[0], this.ulPt[1], this.llPt[0], this.llPt[1], this.xCenter, this.yCenter );
     
     // down triangle
-    fill ( centerColor - yDistanceFromCenter);
-    triangle ( x3, y3, x4, y4, this.xCenter, this.yCenter );
+    fill ( this.red - yShade, this.green - yShade, this.blue - yShade );
+    triangle ( this.lrPt[0], this.lrPt[1], this.llPt[0], this.llPt[1], this.xCenter, this.yCenter );
     
     // right triangle
-    fill ( centerColor - xDistanceFromCenter);
-    triangle ( x3, y3, x2, y2, this.xCenter, this.yCenter );
+    fill ( this.red - xShade, this.green - xShade, this.blue - xShade );
+    triangle ( this.lrPt[0], this.lrPt[1], this.urPt[0], this.urPt[1], this.xCenter, this.yCenter );
   }
 }
 
